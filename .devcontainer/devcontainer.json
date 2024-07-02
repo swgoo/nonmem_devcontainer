@@ -1,0 +1,10 @@
+{
+    "name": "nonmem_workbench",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": ["tnzo12.nmbench", "dpastoor.vscode-nm"]
+}

@@ -1,3 +1,13 @@
+*
+./*
+workspace/*
+!workspace/README.md
+!.devcontainer/*
+!.vscode/*
+!.gitignore
+!LICENSE
+!README.md
+
 # History files
 .Rhistory
 .Rapp.history
