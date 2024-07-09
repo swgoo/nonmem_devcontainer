@@ -1,8 +1,11 @@
 *
 ./*
 workspace/*
+.devcontainer/nonmem.lic
 !workspace/README.md
-!.devcontainer/*
+!.devcontainer/devcontainer.json
+!.devcontainer/docker-compose.yml
+!.devcontainer/dockerfile
 !.vscode/*
 !.gitignore
 !LICENSE
