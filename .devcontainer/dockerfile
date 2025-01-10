@@ -15,7 +15,7 @@ ARG PSN_VERSION_PATCH=0
 
 ARG NMTHREADS=4
 
-ARG R_library="'xpose', 'xpose4', 'ggpubr', 'dplyr', 'reshape'"
+ARG R_library="'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape'"
 
 ARG PSN_VERSION=${PSN_VERSION_MAJOR}.${PSN_VERSION_MINOR}.${PSN_VERSION_PATCH}
 ARG PSN_VERSION_UNDERSCORE=${PSN_VERSION_MAJOR}_${PSN_VERSION_MINOR}_${PSN_VERSION_PATCH}
@@ -165,7 +165,11 @@ RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
 
 RUN mkdir -p /opt/PsN/current
 
-RUN R -e "install.packages(c(${R_library}), repos='https://cloud.r-project.org/')"
+RUN R -e "install.packages(c(${R_library}), repos='https://cloud.r-project.org/',  dependencies = TRUE)"
+RUN R -e "install.packages('ggplot2', repos='https://cloud.r-project.org/',  dependencies = TRUE)"
+RUN R -e "install.packages('devtools')"
+RUN R -e "devtools::install_github('kassambara/ggpubr')"
+RUN R -e "devtools::install_github('UUPharmacometrics/PsNR')"
 
 WORKDIR /workspace
 
