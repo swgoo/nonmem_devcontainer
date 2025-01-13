@@ -6,5 +6,10 @@
     "settings": {
         "terminal.integrated.shell.linux": "/bin/bash"
     },
-    "extensions": ["tnzo12.nmbench", "dpastoor.vscode-nm"]
+    "extensions": [
+        "tnzo12.nmbench",
+        "dpastoor.vscode-nm",
+        "REditorSupport.r",
+        "Mikhail-Arkhipov.r"
+    ]
 }
