@@ -14,5 +14,5 @@ services:
     working_dir: /workspace
     volumes:
       - ./nonmem.lic:/opt/NONMEM/nm_current/license/nonmem.lic
-      - ../workspace:/workspace
+      - ..:/workspace
     command: sleep infinity
