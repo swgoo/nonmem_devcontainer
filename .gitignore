@@ -1,15 +1,4 @@
 *
-./*
-workspace/*
-.devcontainer/nonmem.lic
-!workspace/README.md
-!.devcontainer/devcontainer.json
-!.devcontainer/docker-compose.yml
-!.devcontainer/dockerfile
-!.vscode/*
-!.gitignore
-!LICENSE
-!README.md
 
 # History files
 .Rhistory
