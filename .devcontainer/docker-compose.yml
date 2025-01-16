@@ -1,5 +1,6 @@
 services:
   app:
+    ##### Uncomment the following lines to build the image locally #####
     # build:
     #   dockerfile: dockerfile
     #   args:
@@ -9,8 +10,10 @@ services:
     #     PSN_VERSION_MAJOR: 5
     #     PSN_VERSION_MINOR: 3
     #     PSN_VERSION_PATCH: 2
-    #     PERL_VERSION: 5.34.0
+    #####
+    ##### Comment out the following line if you build the image locally #####
     image: swgoo/nonmem
+    #####
     working_dir: /workspace
     volumes:
       - ./nonmem.lic:/opt/NONMEM/nm_current/license/nonmem.lic

@@ -11,5 +11,6 @@
         "dpastoor.vscode-nm",
         "REditorSupport.r",
         "Mikhail-Arkhipov.r"
-    ]
+    ],
+    "shutdownAction": "stopCompose"
 }

@@ -2,14 +2,13 @@
 nonmem devcontainer on VSCode.
 
 # Instruction
-1. change the [nonmem.lic](.devcontainer/nonmem.lic) to a real license file. the current file is fake.
-2. In VSCode, Open Command Pallete(<kbd>F1</kbd>) and then Execute "Dev Containers: Reopen in Container"
+1. Execute [VSCode](https://code.visualstudio.com/)
+1. Add a valid **nonmem.lic** file to [.devcontainer Folder](.devcontainer).
+1. Open Folder 
+    - Navigate to the top menu: **File > Open Folder...**
+1. Open Command Palette
+    - Navigate to the top menu: **View > Command Palette...**
+1. then Execute **Dev Containers: Reopen in Container**
 
 # Update
-If you want to update the software, you have to change the version numbers.
-
-[dockerfile](.devcontainer/dockerfile#L1)
-
-[docker-compose.yml](.devcontainer/docker-compose.yml#L6-L12)
-
-And Refer to a PsN installation document [document](https://uupharmacometrics.github.io/PsN/install.html)
+If you want to build the Docker Image yourself, you need to update [the version numbers](.devcontainer/docker-compose.yml#L6-L12).
