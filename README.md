@@ -2,6 +2,7 @@
 nonmem devcontainer on VSCode.
 
 # Instruction
+1. Install [Docker](https://www.docker.com/get-started/)
 1. Execute [VSCode](https://code.visualstudio.com/)
 1. Add a valid **nonmem.lic** file to [.devcontainer Folder](.devcontainer).
 1. Open Folder 
