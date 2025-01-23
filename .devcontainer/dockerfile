@@ -162,7 +162,7 @@ RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
 
 RUN mkdir -p /opt/PsN/current
 
-ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'devtools'"
+ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'rxode2', 'nlmixr2', 'devtools'"
 ARG R_library_for_devtools="'kassambara/ggpubr','UUPharmacometrics/PsNR'"
 
 RUN R -e "install.packages(c(${R_library}))"
@@ -171,5 +171,3 @@ RUN R -e "lapply(c(${R_library_from_devtools}), devtools::install_github)"
 WORKDIR /workspace
 
 EXPOSE 8787
-
-CMD /bin/bash
