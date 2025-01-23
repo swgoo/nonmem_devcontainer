@@ -1,5 +1,4 @@
 {
-    "name": "nonmem_workbench",
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/workspace",
