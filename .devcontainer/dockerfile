@@ -15,15 +15,11 @@ ARG PSN_VERSION_PATCH=0
 
 ARG NMTHREADS=4
 
-ARG R_library="'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape'"
-
 ARG PSN_VERSION=${PSN_VERSION_MAJOR}.${PSN_VERSION_MINOR}.${PSN_VERSION_PATCH}
 ARG PSN_VERSION_UNDERSCORE=${PSN_VERSION_MAJOR}_${PSN_VERSION_MINOR}_${PSN_VERSION_PATCH}
 ARG PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VERSION}/PsN-${PSN_VERSION}.tar.gz
 
 USER root
-
-
 
 RUN apt update
 RUN apt install -y python3 python3-venv python3-dev make
@@ -165,11 +161,11 @@ RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
 
 RUN mkdir -p /opt/PsN/current
 
-RUN R -e "install.packages(c(${R_library}), repos='https://cloud.r-project.org/',  dependencies = TRUE)"
-RUN R -e "install.packages('ggplot2', repos='https://cloud.r-project.org/',  dependencies = TRUE)"
-RUN R -e "install.packages('devtools')"
-RUN R -e "devtools::install_github('kassambara/ggpubr')"
-RUN R -e "devtools::install_github('UUPharmacometrics/PsNR')"
+ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'devtools'"
+ARG R_library_for_devtools="'kassambara/ggpubr','UUPharmacometrics/PsNR'"
+
+RUN R -e "install.packages(c(${R_library}))"
+RUN R -e "lapply(c(${R_library_from_devtools}), devtools::install_github)"
 
 WORKDIR /workspace
 
