@@ -1,4 +1,4 @@
-# nonmem_workbench
+# nonmem_devcontainer
 nonmem devcontainer on VSCode.
 
 # Instruction
