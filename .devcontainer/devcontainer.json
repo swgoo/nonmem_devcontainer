@@ -9,8 +9,7 @@
     "extensions": [
         "tnzo12.nmbench",
         "dpastoor.vscode-nm",
-        "REditorSupport.r",
-        "Mikhail-Arkhipov.r"
+        "REditorSupport.r"
     ],
     "shutdownAction": "stopCompose"
 }
