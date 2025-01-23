@@ -1,4 +1,5 @@
-FROM rocker/r-ver:4.4.2
+FROM rocker/rstudio:4.4.2
+# FROM rocker/r-ver:4.4.2
 
 ARG NONMEM_MAJOR_VERSION=7
 ARG NONMEM_MINOR_VERSION=5
@@ -61,7 +62,7 @@ RUN cpanm Math::Matrix
 ADD ${PSNURL} /tmp/psn.tar.gz
 RUN tar zxf /tmp/psn.tar.gz -C /mnt
 
-COPY nonmem.lic /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
+RUN mkdir -p /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license &&echo "this_is_fake_license" > /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
 
 RUN wget \
     -nv --no-check-certificate --auth-no-challenge \
@@ -168,5 +169,7 @@ RUN R -e "install.packages(c(${R_library}))"
 RUN R -e "lapply(c(${R_library_from_devtools}), devtools::install_github)"
 
 WORKDIR /workspace
+
+EXPOSE 8787
 
 CMD /bin/bash
