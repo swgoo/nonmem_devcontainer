@@ -22,36 +22,75 @@ ARG PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VER
 
 USER root
 
+# RUN apt update
+# RUN apt install -y python3 python3-venv python3-dev make
+# RUN apt install -y cpanminus
+
+# RUN apt install -y libmpich-dev
+# RUN apt install -y mpich
+# RUN apt install -y wget
+# RUN apt install -y unzip
+
+# RUN apt install -y pandoc
+# RUN apt install -y libpq-dev
+# RUN apt install -y libcairo2-dev
+# RUN apt install -y libssl-dev
+# RUN apt install -y libcurl4-openssl-dev
+# RUN apt install -y libmariadb-dev
+# RUN apt install -y libgmp-dev
+# RUN apt install -y libmpfr-dev
+# RUN apt install -y libxml2-dev
+# RUN apt install -y libudunits2-dev
+# RUN apt install -y libblas-dev
+# RUN apt install -y liblapack-dev
+# RUN apt install -y libmagick++-dev
+
+# RUN apt-get update && \
+#     apt-get install -y software-properties-common && \
+#     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+#     apt-get update && \
+#     apt-get install -y gfortran-11 && \
+#     apt-get clean && \
+#     rm -rf /var/lib/apt/lists/*
+
+# 1. Update & add the PPA
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
     apt-get update && \
     apt-get install -y gfortran-11 && \
+    # 2. Set gfortran-11 as the default
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt update
-RUN apt install -y python3 python3-venv python3-dev make
-RUN apt install -y cpanminus
-
-RUN apt install -y libmpich-dev
-RUN apt install -y mpich
-RUN apt install -y wget
-RUN apt install -y unzip
-
-RUN apt install -y pandoc
-RUN apt install -y libpq-dev
-RUN apt install -y libcairo2-dev
-RUN apt install -y libssl-dev
-RUN apt install -y libcurl4-openssl-dev
-RUN apt install -y libmariadb-dev
-RUN apt install -y libgmp-dev
-RUN apt install -y libmpfr-dev
-RUN apt install -y libxml2-dev
-RUN apt install -y libudunits2-dev
-RUN apt install -y libblas-dev
-RUN apt install -y liblapack-dev
-RUN apt install -y libmagick++-dev
+# 3. Install the rest of your dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-venv \
+        python3-dev \
+        make \
+        cpanminus \
+        libmpich-dev \
+        mpich \
+        wget \
+        unzip \
+        pandoc \
+        libpq-dev \
+        libcairo2-dev \
+        libssl-dev \
+        libcurl4-openssl-dev \
+        libmariadb-dev \
+        libgmp-dev \
+        libmpfr-dev \
+        libxml2-dev \
+        libudunits2-dev \
+        libblas-dev \
+        liblapack-dev \
+        libmagick++-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN cpanm Math::Random::Free
 RUN cpanm Mouse
@@ -120,8 +159,8 @@ RUN cd / \
 RUN cpanm Math::Random
 RUN cpanm Math::MatrixReal
 
-
-RUN apt install -y expect
+# configure PsN
+RUN apt update && apt install -y expect
 RUN cd /mnt/PsN-Source && expect <<EOF
 set timeout -1c
 spawn perl setup.pl
