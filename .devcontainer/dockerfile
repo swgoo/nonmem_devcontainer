@@ -22,12 +22,18 @@ ARG PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VER
 
 USER root
 
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt-get update && \
+    apt-get install -y gfortran-11 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN apt update
 RUN apt install -y python3 python3-venv python3-dev make
-
 RUN apt install -y cpanminus
 
-RUN apt install -y gfortran
 RUN apt install -y libmpich-dev
 RUN apt install -y mpich
 RUN apt install -y wget
