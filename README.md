@@ -13,4 +13,4 @@ nonmem devcontainer on VSCode.
 1. then Execute **Dev Containers: Reopen in Container**
 
 # Update
-If you want to build the Docker Image yourself, you need to update [the version numbers](.devcontainer/docker-compose.yml#L6-L12).
+If you want to create your own Docker image, you need to update the version numbers and build the image using the [Dockerfile](.devcontainer/dockerfile).
