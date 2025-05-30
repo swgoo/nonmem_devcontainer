@@ -2,8 +2,8 @@
 FROM rocker/r-ver:4.4.2
 
 ARG NONMEM_MAJOR_VERSION=7
-ARG NONMEM_MINOR_VERSION=6
-ARG NONMEM_PATCH_VERSION=0
+ARG NONMEM_MINOR_VERSION=5
+ARG NONMEM_PATCH_VERSION=1
 ENV NONMEM_VERSION_NO_DOTS=${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION}${NONMEM_PATCH_VERSION}
 ENV NONMEM_VERSION=${NONMEM_MAJOR_VERSION}.${NONMEM_MINOR_VERSION}.${NONMEM_PATCH_VERSION}
 
@@ -20,22 +20,24 @@ ARG PSN_VERSION=${PSN_VERSION_MAJOR}.${PSN_VERSION_MINOR}.${PSN_VERSION_PATCH}
 ARG PSN_VERSION_UNDERSCORE=${PSN_VERSION_MAJOR}_${PSN_VERSION_MINOR}_${PSN_VERSION_PATCH}
 ARG PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VERSION}/PsN-${PSN_VERSION}.tar.gz
 
+ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'rxode2', 'nlmixr2', 'devtools', 'colorspace', 'autoReg', 'eha', 'flextable', 'ftExtra', 'interpretCI', 'ranger', 'survex', 'survminer'"
+
 USER root
 
-# 1. Update & add the PPA
+# Update & add the PPA
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
     apt-get update && \
     apt-get install -y gfortran-11 && \
-    # 2. Set gfortran-11 as the default
-    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100 && \
+    # Set gfortran-11 as the default
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100 && \ 
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# 3. Install the rest of your dependencies
-RUN apt-get update && \
-    apt-get install -y \
+    rm -rf /var/lib/apt/lists/* \
+    && apt-get update \
+    && apt-get install -y \
+        curl \
+        git \
         python3 \
         python3-venv \
         python3-dev \
@@ -57,32 +59,25 @@ RUN apt-get update && \
         libudunits2-dev \
         libblas-dev \
         liblapack-dev \
-        libmagick++-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN cpanm Math::Random::Free
-RUN cpanm Mouse
-RUN cpanm MouseX::Params::Validate
-RUN cpanm Archive::Zip
-RUN cpanm YAML
-RUN cpanm Capture::Tiny
-RUN cpanm File::Copy::Recursive
-RUN cpanm File::HomeDir
-RUN cpanm Math::SigFigs
-RUN cpanm Statistics::Distributions
-RUN cpanm Math::Matrix
+        libmagick++-dev \
+        expect \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && cpanm Math::Random::Free Mouse MouseX::Params::Validate Archive::Zip YAML Capture::Tiny File::Copy::Recursive File::HomeDir Math::SigFigs Statistics::Distributions Math::Matrix Math::Random Math::MatrixReal \
+    && R -e "install.packages(c(${R_library})); devtools::install_github('kassambara/ggpubr'); devtools::install_github('UUPharmacometrics/PsNR')"
 
 ADD ${PSNURL} /tmp/psn.tar.gz
-RUN tar zxf /tmp/psn.tar.gz -C /mnt
+RUN tar zxf /tmp/psn.tar.gz -C /mnt \
+    && mkdir -p /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license &&echo "this_is_fake_license" > /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
 
-RUN mkdir -p /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license &&echo "this_is_fake_license" > /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
-
-RUN wget \
-    -nv --no-check-certificate --auth-no-challenge \
-    -O /tmp/NONMEM.zip \
-    ${NONMEMURL}
-RUN cd /tmp \
+# Download and install NONMEM
+RUN COOKIES_FILE=$(mktemp) \
+    && curl -c "$COOKIES_FILE" https://nonmem.iconplc.com/ > /dev/null \
+    && CSRF_TOKEN=$(grep 'csrftoken' "$COOKIES_FILE" | head -n 1 | awk '{print $7}') \
+    && DOWNLOAD_URL="${NONMEMURL}?csrftoken=${CSRF_TOKEN}" \
+    && curl -b "$COOKIES_FILE" -o /tmp/NONMEM.zip "$DOWNLOAD_URL" \
+    && rm "$COOKIES_FILE" \
+    && cd /tmp \
     && unzip -P ${NONMEMZIPPASS} NONMEM.zip \
     && ls /tmp \
     && if [ ! -d "/tmp/nm${NONMEM_VERSION_NO_DOTS}CD" ] ; then ln -s . nm${NONMEM_VERSION_NO_DOTS}CD ; fi \
@@ -125,11 +120,7 @@ RUN cd / \
     && ln -sf /opt/NONMEM/nm_current/util/nmfe${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION} \
     /opt/NONMEM/nm_current/util/nmfe
 
-RUN cpanm Math::Random
-RUN cpanm Math::MatrixReal
-
 # configure PsN
-RUN apt update && apt install -y expect
 RUN cd /mnt/PsN-Source && expect <<EOF
 set timeout -1c
 spawn perl setup.pl
@@ -176,12 +167,4 @@ RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
 
 RUN mkdir -p /opt/PsN/current
 
-ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'rxode2', 'nlmixr2', 'devtools', 'colorspace', 'autoReg', 'eha', 'flextable', 'ftExtra', 'interpretCI', 'ranger', 'survex', 'survminer'"
-
-RUN R -e "install.packages(c(${R_library}))"
-RUN R -e "devtools::install_github('kassambara/ggpubr')"
-RUN R -e "devtools::install_github('UUPharmacometrics/PsNR')"
-
 WORKDIR /workspace
-
-# EXPOSE 8787
