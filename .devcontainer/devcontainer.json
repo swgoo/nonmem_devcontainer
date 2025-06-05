@@ -10,14 +10,5 @@
         "dpastoor.vscode-nm",
         "REditorSupport.r"
     ],
-    "shutdownAction": "stopCompose",
-    "postAttachCommand": "/init",
-    "forwardPorts": [8787],
-    "containerEnv": {
-        "ROOT": true,
-        "DISABLE_AUTH": true
-    },
-    "mounts": [
-        "source=..,destination=/home/rstudio/"
-    ]
+    "shutdownAction": "stopCompose"
 }
