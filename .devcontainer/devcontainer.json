@@ -1,6 +1,5 @@
-{
-    "dockerComposeFile": "docker-compose.yml",
-    "service": "app",
+{   
+    "image": "swgoo/nonmem",
     "workspaceFolder": "/workspace",
     "settings": {
         "terminal.integrated.shell.linux": "/bin/bash"
@@ -10,5 +9,16 @@
         "dpastoor.vscode-nm",
         "REditorSupport.r"
     ],
-    "shutdownAction": "stopCompose"
+    "mounts": [
+        {
+            "source": "${localWorkspaceFolder}/.devcontainer/nonmem.lic",
+            "target": "/opt/NONMEM/nm_current/license/nonmem.lic",
+            "type": "bind"
+        },
+        {
+            "source": "${localWorkspaceFolder}",
+            "target": "/workspace",
+            "type": "bind"
+        }
+    ],
 }
