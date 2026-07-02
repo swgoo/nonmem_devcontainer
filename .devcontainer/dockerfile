@@ -1,41 +1,49 @@
-# FROM rocker/rstudio:4.4.2
-FROM rocker/r-ver:4.4.2
+FROM docker.io/rocker/r-ver:4.4.3
 
 ARG NONMEM_MAJOR_VERSION=7
 ARG NONMEM_MINOR_VERSION=5
 ARG NONMEM_PATCH_VERSION=1
-ENV NONMEM_VERSION_NO_DOTS=${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION}${NONMEM_PATCH_VERSION}
-ENV NONMEM_VERSION=${NONMEM_MAJOR_VERSION}.${NONMEM_MINOR_VERSION}.${NONMEM_PATCH_VERSION}
-
-ARG NONMEMURL=https://nonmem.iconplc.com/nonmem${NONMEM_VERSION_NO_DOTS}/NONMEM${NONMEM_VERSION_NO_DOTS}.zip
 ARG NONMEMZIPPASS=yorx8bqRT
 
 ARG PSN_VERSION_MAJOR=5
-ARG PSN_VERSION_MINOR=6
-ARG PSN_VERSION_PATCH=0
+ARG PSN_VERSION_MINOR=7
+ARG PSN_VERSION_PATCH=1
 
 ARG NMTHREADS=4
 
-ARG PSN_VERSION=${PSN_VERSION_MAJOR}.${PSN_VERSION_MINOR}.${PSN_VERSION_PATCH}
-ARG PSN_VERSION_UNDERSCORE=${PSN_VERSION_MAJOR}_${PSN_VERSION_MINOR}_${PSN_VERSION_PATCH}
-ARG PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VERSION}/PsN-${PSN_VERSION}.tar.gz
+ARG SSH_PASSWORD=root
 
-ARG R_library="'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'rxode2', 'nlmixr2', 'devtools', 'colorspace', 'autoReg', 'eha', 'flextable', 'ftExtra', 'interpretCI', 'ranger', 'survex', 'survminer'"
+ARG R_library="'devtools','remotes', 'languageserver', 'xpose', 'xpose4', 'dplyr', 'ggpubr', 'reshape', 'ggplot2', 'rxode2', 'nlmixr2', 'colorspace', 'autoReg', 'eha', 'flextable', 'ftExtra', 'interpretCI', 'ranger', 'survex', 'survminer'"
+
+ARG NONMEM_MAJOR_VERSION
+ARG NONMEM_MINOR_VERSION
+ARG NONMEM_PATCH_VERSION
+ARG NONMEMZIPPASS
+ARG PSN_VERSION_MAJOR
+ARG PSN_VERSION_MINOR
+ARG PSN_VERSION_PATCH
+ARG NMTHREADS
+ARG R_library
+ARG SSH_PASSWORD
+
+ENV NONMEM_VERSION_NO_DOTS=${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION}${NONMEM_PATCH_VERSION}
+ENV NONMEM_VERSION=${NONMEM_MAJOR_VERSION}.${NONMEM_MINOR_VERSION}.${NONMEM_PATCH_VERSION}
+ENV PSN_VERSION=${PSN_VERSION_MAJOR}.${PSN_VERSION_MINOR}.${PSN_VERSION_PATCH}
+ENV PSN_VERSION_UNDERSCORE=${PSN_VERSION_MAJOR}_${PSN_VERSION_MINOR}_${PSN_VERSION_PATCH}
+
+ENV NONMEMURL=https://nonmem.iconplc.com/nonmem${NONMEM_VERSION_NO_DOTS}/NONMEM${NONMEM_VERSION_NO_DOTS}.zip
+ENV PSNURL=https://github.com/UUPharmacometrics/PsN/releases/download/v${PSN_VERSION}/PsN-${PSN_VERSION}.tar.gz
+
+ENV SSH_PASSWORD=${SSH_PASSWORD}
 
 USER root
 
-# Update & add the PPA
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt-get update && \
-    apt-get install -y gfortran-11 && \
-    # Set gfortran-11 as the default
-    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100 && \ 
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* \
-    && apt-get update \
-    && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        software-properties-common \
+    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        gfortran-11 \
         curl \
         git \
         python3 \
@@ -61,16 +69,57 @@ RUN apt-get update && \
         liblapack-dev \
         libmagick++-dev \
         expect \
+        libuv1-dev \
+        libfontconfig1-dev \
+        libharfbuzz-dev \
+        libfribidi-dev \
+        openssh-server \
+        libarchive-zip-perl \
+        libyaml-perl \
+        libcapture-tiny-perl \
+        libfile-copy-recursive-perl \
+        libfile-homedir-perl \
+        libmouse-perl \
+    && update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && cpanm Math::Random::Free Mouse MouseX::Params::Validate Archive::Zip YAML Capture::Tiny File::Copy::Recursive File::HomeDir Math::SigFigs Statistics::Distributions Math::Matrix Math::Random Math::MatrixReal \
-    && R -e "install.packages(c(${R_library})); devtools::install_github('kassambara/ggpubr'); devtools::install_github('UUPharmacometrics/PsNR')"
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /var/run/sshd \
+    && echo "root:${SSH_PASSWORD}" | chpasswd \
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && sed -i 's/session\s*required\s*pam_loginuid.so/session optional pam_loginuid.so/g' /etc/pam.d/sshd
+
+RUN cpanm --notest --quiet \
+    MouseX::Params::Validate \
+    Math::Random::Free \
+    Math::SigFigs \
+    Statistics::Distributions \
+    Math::Matrix \
+    Math::Random \
+    Math::MatrixReal
+
+RUN R -e "codename <- sub('VERSION_CODENAME=', '', grep('^VERSION_CODENAME=', readLines('/etc/os-release'), value = TRUE)); \
+          options(repos = c(CRAN = paste0('https://packagemanager.posit.co/cran/__linux__/', codename, '/latest'))); \
+          options(Ncpus = parallel::detectCores()); \
+          install.packages(c(${R_library}))"
+
+RUN git clone https://github.com/UUPharmacometrics/PsNR.git /tmp/PsNR \
+    && R -e "lines <- readLines('/tmp/PsNR/DESCRIPTION'); \
+             start_idx <- grep('^Authors@R:', lines); \
+             lines[start_idx] <- 'Author: UUPharmacometrics'; \
+             desc_idx <- grep('^Description:', lines); \
+             if(desc_idx > start_idx + 1) lines <- lines[-( (start_idx+1):(desc_idx-1) )]; \
+             writeLines(lines, '/tmp/PsNR/DESCRIPTION')" \
+    && R -e "remotes::install_local('/tmp/PsNR', upgrade = 'never')" \
+    && rm -rf /tmp/PsNR
+
 
 ADD ${PSNURL} /tmp/psn.tar.gz
 RUN tar zxf /tmp/psn.tar.gz -C /mnt \
-    && mkdir -p /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license &&echo "this_is_fake_license" > /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
+    && mkdir -p /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license \
+    && echo "this_is_fake_license" > /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/license/nonmem.lic
 
-# Download and install NONMEM
 RUN COOKIES_FILE=$(mktemp) \
     && curl -c "$COOKIES_FILE" https://nonmem.iconplc.com/ > /dev/null \
     && CSRF_TOKEN=$(grep 'csrftoken' "$COOKIES_FILE" | head -n 1 | awk '{print $7}') \
@@ -79,7 +128,6 @@ RUN COOKIES_FILE=$(mktemp) \
     && rm "$COOKIES_FILE" \
     && cd /tmp \
     && unzip -P ${NONMEMZIPPASS} NONMEM.zip \
-    && ls /tmp \
     && if [ ! -d "/tmp/nm${NONMEM_VERSION_NO_DOTS}CD" ] ; then ln -s . nm${NONMEM_VERSION_NO_DOTS}CD ; fi \
     && cd /tmp/nm${NONMEM_VERSION_NO_DOTS}CD \
     && bash \
@@ -98,29 +146,24 @@ RUN COOKIES_FILE=$(mktemp) \
     && ln -s /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS} /opt/NONMEM/nm_current \
     && ln -s /opt/NONMEM/nm_current/util/nmfe${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION} \
     /opt/NONMEM/nm_current/util/nmfe \
-    && rm -r /tmp/* \
+    && rm -rf /tmp/* \
     && rm -f /opt/NONMEM/nm_current/mpi/mpi_ling/libmpich.a \
     && ln -s \
     /usr/lib/x86_64-linux-gnu/libmpich.a \
     /opt/NONMEM/nm_current/mpi/mpi_ling/libmpich.a \
-    && echo "Update the default number of nodes for parallel NONMEM in the mpilinux_XX.pnm file" \
     && for NMNODES in 2 4 6 8 10 12 14 16 18 20 22 24 28 32 48 64 128; do \
     sed 's/\[nodes\]=8/\[nodes\]='$NMNODES'/' \
     /opt/NONMEM/nm_current/run/mpilinux8.pnm > \
     /opt/NONMEM/nm_current/run/mpilinux_$NMNODES.pnm ; \
     done
 
-# add nonmem to environment
 ENV PATH=/opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS}/run:$PATH
 
-# making shortcuts for nonmem (in consideration of PsN)
-RUN cd / \
-    && mkdir -p /opt/NONMEM \
+RUN mkdir -p /opt/NONMEM \
     && ln -sf /opt/NONMEM/nm${NONMEM_VERSION_NO_DOTS} /opt/NONMEM/nm_current \
     && ln -sf /opt/NONMEM/nm_current/util/nmfe${NONMEM_MAJOR_VERSION}${NONMEM_MINOR_VERSION} \
     /opt/NONMEM/nm_current/util/nmfe
 
-# configure PsN
 RUN cd /mnt/PsN-Source && expect <<EOF
 set timeout -1c
 spawn perl setup.pl
@@ -151,8 +194,8 @@ expect {
 }
 EOF
 
-RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
-    export TEMP_PSN_CONF_PATH=/usr/local/share/perl/$(perl -v | grep -oP '(?<=\(v)[^)]*')/PsN_${PSN_VERSION_UNDERSCORE}/psn.conf && \
+RUN TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
+    TEMP_PSN_CONF_PATH=/usr/local/share/perl/${TEMP_PERL_VERSION}/PsN_${PSN_VERSION_UNDERSCORE}/psn.conf && \
     mv $TEMP_PSN_CONF_PATH /mnt/psn.conf && \
     sed 's/threads=5/threads='${NMTHREADS}'/' /mnt/psn.conf > $TEMP_PSN_CONF_PATH && \
     PSN_NONMEM_VERSION=$(echo $NONMEM_VERSION | sed 's/\.[0-9]$//g') && \
@@ -166,5 +209,23 @@ RUN export TEMP_PERL_VERSION=$(perl -v | grep -oP '(?<=\(v)[^)]*') && \
     done
 
 RUN mkdir -p /opt/PsN/current
+
+RUN printf '#!/bin/bash\n\
+set -e\n\
+if [ -n "$SSH_PASSWORD" ]; then\n\
+    echo "root:$SSH_PASSWORD" | chpasswd\n\
+fi\n\
+if [ -n "$NONMEM_LICENSE_TEXT" ]; then\n\
+    echo "$NONMEM_LICENSE_TEXT" > /opt/NONMEM/nm_current/license/nonmem.lic\n\
+fi\n\
+ssh-keygen -A\n\
+/usr/sbin/sshd\n\
+exec "$@"\n' > /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 22
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/bin/bash"]
 
 WORKDIR /workspace
